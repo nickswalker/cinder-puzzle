@@ -5,14 +5,17 @@
 #include "cinder/Sphere.h"
 #include <clingo.hh>
 #include <iostream>
+#include <puzzle/ASPSolver.h>
+#include <puzzle/PixelsDomain.h>
+#include <puzzle/Puzzle.h>
 
-#include "Resources.h"
+#include "puzzle/Resources.h"
 
 using namespace ci;
 using namespace ci::app;
-using namespace Clingo;
 
-class ArcballDemoApp : public App {
+
+class Demo : public App {
 public:
     void setup() override;
     void resize() override;
@@ -20,75 +23,37 @@ public:
     void mouseDrag( MouseEvent event ) override;
     void draw() override;
 
-    Arcball			mArcball;
-    CameraPersp		mCamera;
-
-    Sphere			mEarthSphere;
-    gl::BatchRef	mEarth;
-    gl::TextureRef	mEarthTex;
 };
 
-void ArcballDemoApp::setup() {
-
-    try {
-        Logger logger = [](Clingo::WarningCode, char const *message) {
-            std::cerr << message << std::endl;
-        };
-
-        Control ctl({}, logger, 20);
-        ctl.add("base", {}, "a :- not b. b :- not a.");
-        ctl.ground({{"base", {eo}}});
-        for (auto m : ctl.solve()) {
-            std::cout << "Model:";
-            for (auto &atom : m.symbols()) {
-                std::cout << " " << atom;
-            }
-            std::cout << "\n";
-        }
-    }
-    catch (std::exception const &e) {
-        std::cerr << "example failed with: " << e.what() << std::endl;
-    }
-
+void Demo::setup() {
     gl::enableDepthRead();
     gl::enableDepthWrite();
 
-    mCamera.setPerspective( 45.0f, getWindowAspectRatio(), 0.1f, 1000.0f );
-    mCamera.lookAt( vec3( 0, 0, 3 ), vec3( 0 ) );
+    Puzzle::PixelsDomain domain(100, 100);
+    Puzzle::Puzzle puzzle;
+    puzzle.compose(domain);
+    Puzzle::ASPSolver solver;
+    solver.solve(puzzle);
 
-    mEarthSphere = Sphere( vec3( 0 ), 1 );
-    mEarth = gl::Batch::create( geom::Sphere( mEarthSphere ).subdivisions( 50 ), gl::getStockShader( gl::ShaderDef().texture() ) );
-    mEarthTex = gl::Texture::create( loadImage( loadResource( EARTH_TEX_RES ) ) );
-
-    mArcball = Arcball( &mCamera, mEarthSphere );
 }
 
-void ArcballDemoApp::resize()
+void Demo::resize()
 {
-    mCamera.setAspectRatio( getWindowAspectRatio() );
 }
 
-void ArcballDemoApp::mouseDown( MouseEvent event )
-{
-    mArcball.mouseDown( event );
+void Demo::mouseDown(MouseEvent event) {
+
 }
 
-void ArcballDemoApp::mouseDrag( MouseEvent event )
-{
-    mArcball.mouseDrag( event );
+void Demo::mouseDrag(MouseEvent event) {
+
 }
 
-void ArcballDemoApp::draw()
-{
-    gl::clear( Color( 0, 0.0f, 0.15f ) );
-    gl::setMatrices( mCamera );
+void Demo::draw() {
+    gl::clear(Color(0, 0.0f, 0.0f));
 
-    gl::rotate( mArcball.getQuat() );
-    mEarthTex->bind();
-    mEarth->draw();
+    gl::drawSolidRect(cinder::Rectf(10., 10., 10., 10.));
+    gl::drawSolidCircle(getWindowCenter(), 200);
 }
 
-CINDER_APP( ArcballDemoApp, RendererGl, [] ( App::Settings *settings ) {
-    settings->setMultiTouchEnabled( false );
-}
-)
+CINDER_APP(Demo, RendererGl)
