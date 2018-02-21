@@ -17,7 +17,7 @@ namespace Puzzle {
 
         void set_canvas_size(const size_t width, const size_t height);
 
-
+        bool neighbors_different = false;
     };
 }
 

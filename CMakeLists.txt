@@ -13,35 +13,32 @@ find_package( cinder REQUIRED PATHS
         PATHS "${CINDER_PATH}/${CINDER_LIB_DIRECTORY}"
         )
 
-SET(DCINDER_BOOST_USE_SYSTEM 1)
-
 link_directories(
-        /home/nwalker/Documents/bdp/clingo/cmake-build-debug/lib/
+        /home/nick/Documents/bdp/clingo/cmake-build-debug/lib/
 )
 
 include_directories(
-        /home/nwalker/Documents/bdp/clingo/libclingo/
-        /home/nwalker/Documents/bdp/clingo/clasp/
+        /home/nick/Documents/bdp/clingo/libclingo/
+        /home/nick/Documents/bdp/clingo/clasp/
         include
 )
 
-add_library(puzzle src/PixelsDomain.cpp src/ASPSolver.cpp include/puzzle/ASPSolver.h include/puzzle/Rule.h src/Puzzle.cpp include/puzzle/Puzzle.h)
+add_library(puzzle src/PixelsDomain.cpp src/ASPSolver.cpp src/PixelsRenderer.cpp src/Puzzle.cpp)
 add_executable(demo src/Demo.cpp)
 
 target_link_libraries(puzzle
         PUBLIC
         cinder
         cairo
-        /home/nwalker/Documents/bdp/clingo/cmake-build-debug/bin/libclingo.so
+        /home/nick/Documents/bdp/clingo/build/bin/libclingo.so
         )
 
 target_link_libraries( demo
         PUBLIC
         puzzle
         cinder
-        cairo
-        /home/nwalker/Documents/bdp/clingo/cmake-build-debug/bin/libclingo.so
         )
 
 # Make the domains available next to the binary
 file(COPY domains DESTINATION ./)
+file(COPY resources DESTINATION ./assets)

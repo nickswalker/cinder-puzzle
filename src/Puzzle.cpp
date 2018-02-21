@@ -21,4 +21,13 @@ namespace Puzzle {
     vector<Fact::Ptr> Puzzle::get_facts() const {
         return facts;
     }
+
+    string Puzzle::to_string() const {
+        std::string ret;
+        for (int i = 0; i < facts.size(); ++i) {
+            ret += facts.at(i)->to_string();
+            ret += "\n";
+        }
+        return ret;
+    }
 }

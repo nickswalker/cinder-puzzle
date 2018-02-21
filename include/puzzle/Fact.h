@@ -6,9 +6,13 @@
 namespace Puzzle {
     class Fact {
     public:
+        typedef std::shared_ptr<Fact> Ptr;
+
         virtual ~Fact() = default;
 
-        typedef std::shared_ptr<Fact> Ptr;
+        virtual std::string to_string() = 0;
+
+
     };
 }
 

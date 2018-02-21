@@ -20,6 +20,8 @@ namespace Puzzle {
         void compose(const Rule &fact);
 
         std::vector<Fact::Ptr> get_facts() const;
+
+        std::string to_string() const;
     };
 
 }

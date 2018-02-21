@@ -12,13 +12,13 @@ namespace Puzzle {
         Clingo::Logger logger;
         Clingo::Control control;
     public:
-        ASPSolver();
+        explicit ASPSolver(uint32_t max_solutions);
 
         void add(const std::string &fragment);
 
         void load(const std::string &path);
 
-        std::vector<Fact::Ptr> solve(const Puzzle &puzzle) override;
+        std::vector<std::vector<Fact::Ptr>> solve(const Puzzle &puzzle) override;
     };
 
 }

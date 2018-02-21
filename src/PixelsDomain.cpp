@@ -14,7 +14,6 @@ namespace Puzzle {
         ifstream domain_file("./domains/pixels.lp");
         stringstream buffer;
         buffer << domain_file.rdbuf();
-        cout << buffer.str();
         Fact::Ptr fact = make_shared<RawFact>(buffer.str());
         facts.emplace_back(fact);
 
@@ -29,6 +28,10 @@ namespace Puzzle {
         out << "#const m=" << this->height << ".";
         Fact::Ptr canvas_configuration = make_shared<RawFact>(out.str());
         facts.emplace_back(canvas_configuration);
+        if (neighbors_different) {
+            facts.emplace_back(make_shared<RawFact>(
+                    ":- neighbor(A, B, C, D), pix(A, B), pix(C, D), cpix(Z, A, B), cpix(Z, C, D), col(Z)."));
+        }
         return facts;
     }
 
@@ -40,5 +43,6 @@ namespace Puzzle {
     vector<string> PixelsDomain::get_options() const {
         return vector<string>();
     }
+
 
 }

@@ -15,6 +15,10 @@ namespace Puzzle {
 
         ~RawFact() = default;;
 
+        std::string to_string() {
+            return fact;
+        }
+
     };
 }
 #endif //PUZZLE_RAWFACT_H
