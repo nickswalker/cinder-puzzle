@@ -3,9 +3,14 @@ set( CMAKE_VERBOSE_MAKEFILE ON )
 
 project(puzzle)
 get_filename_component( CINDER_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../Cinder" ABSOLUTE )
+get_filename_component(CLINGO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../clingo" ABSOLUTE)
 get_filename_component( APP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/" ABSOLUTE )
 
 include( "${CINDER_PATH}/proj/cmake/configure.cmake" )
+
+set(CLINGO_INCLUDES "${CLINGO_PATH}/clasp" "${CLINGO_PATH}/libclingo")
+set(CLINGO_LIBS libclingo.so)
+set(CLINGO_LINK_PATH "${CLINGO_PATH}/build/bin")
 
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
@@ -14,12 +19,11 @@ find_package( cinder REQUIRED PATHS
         )
 
 link_directories(
-        /home/nick/Documents/bdp/clingo/cmake-build-debug/lib/
+        ${CLINGO_LINK_PATH}
 )
 
 include_directories(
-        /home/nick/Documents/bdp/clingo/libclingo/
-        /home/nick/Documents/bdp/clingo/clasp/
+        ${CLINGO_INCLUDES}
         include
 )
 
@@ -30,7 +34,7 @@ target_link_libraries(puzzle
         PUBLIC
         cinder
         cairo
-        /home/nick/Documents/bdp/clingo/build/bin/libclingo.so
+        ${CLINGO_LIBS}
         )
 
 target_link_libraries( demo
