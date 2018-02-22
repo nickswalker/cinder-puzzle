@@ -52,6 +52,17 @@ namespace Puzzle {
                 }
             }
         }
+        ostringstream s;
+        s << "col((";
+        for (int i = 0; i < colors.size(); i++) {
+            s << colors[i];
+            if (i != colors.size() - 1) {
+                s << ";";
+            }
+        }
+
+        s << ")).";
+        facts.emplace_back(make_shared<RawFact>(s.str()));
         return facts;
     }
 

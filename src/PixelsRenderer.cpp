@@ -20,6 +20,7 @@ void Puzzle::PixelsRenderer::render(const std::vector<Puzzle::Fact::Ptr> &soluti
     for (auto &fact: solution) {
         if (auto pixel_color = dynamic_pointer_cast<PixelColor>(fact)) {
             if (color_map.count(pixel_color->color) == 0) {
+                cerr << "Unknown color " << pixel_color->color << endl;
                 continue;
             }
             gl::color(color_map[pixel_color->color]);

@@ -31,6 +31,7 @@ namespace Puzzle {
             for (auto m : handle) {
                 vector<Fact::Ptr> model_facts;
                 for (auto &atom : m.symbols(Clingo::ShowType::Shown)) {
+                    //cout << atom << endl;
                     // TODO: This belongs in another object. The domain should probably know the parser
                     if (atom.type() == Clingo::SymbolType::Function) {
                         if (string("cpix") == atom.name()) {

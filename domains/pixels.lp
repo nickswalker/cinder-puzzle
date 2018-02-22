@@ -1,6 +1,3 @@
-% There are three colors
-col((r; g; b; y)).
-
 % The canvas is made of N x M pixels
 pix(1..n, 1..m).
 

@@ -42,16 +42,19 @@ void Demo::setup() {
     gl::enableDepthWrite();
 
     map<string, Color> color_map;
-    color_map.insert(pair<string, Color>(string("r"), Color(1, 0, 0)));
-    color_map.insert(pair<string, Color>(string("g"), Color(0, 1, 0)));
-    color_map.insert(pair<string, Color>(string("b"), Color(0, 0, 1)));
-    color_map.insert(pair<string, Color>(string("y"), Color(1, 1, 0)));
+    //color_map.insert(pair<string, Color>(string("base0"), Color(.39, .48, .51)));
+    //color_map.insert(pair<string, Color>(string("base01"), Color(.34, .43, .45)));
+    //color_map.insert(pair<string, Color>(string("base03"), Color(.00, .16, .21)));
+    color_map.insert(pair<string, Color>(string("base02"), Color(.02, .21, .26)));
+    color_map.insert(pair<string, Color>(string("blue"), Color(.14, .54, .82)));
+    color_map.insert(pair<string, Color>(string("green"), Color(.52, .60, .00)));
+    color_map.insert(pair<string, Color>(string("cyan"), Color(.16, .63, .59)));
+    color_map.insert(pair<string, Color>(string("orange"), Color(.79, .29, .08)));
 
     vector<string> color_strings;
-    color_strings.emplace_back("r");
-    color_strings.emplace_back("g");
-    color_strings.push_back("b");
-    color_strings.emplace_back("y");
+    for (auto &pair: color_map) {
+        color_strings.emplace_back(pair.first);
+    }
     renderer = new Puzzle::PixelsRenderer(color_map);
     renderer->scale = 16;
     domain = new Puzzle::PixelsDomain(40, 30, color_strings);
@@ -87,7 +90,7 @@ void Demo::draw() {
         solutions = solver.solve(puzzle);
 
         if (solutions.empty()) {
-            //cerr << puzzle.to_string() << endl;
+            cerr << puzzle.to_string() << endl;
             cerr << "No solutions found, removing last constraint" << endl;
             domain->clear_constraint(last_x, last_y);
             return;
