@@ -3,6 +3,7 @@
 #include <cinder/gl/gl.h>
 
 #include <utility>
+#include <cinder/app/MouseEvent.h>
 #include "puzzle/PixelsRenderer.h"
 
 using namespace cinder;
@@ -27,6 +28,5 @@ void Puzzle::PixelsRenderer::render(const std::vector<Puzzle::Fact::Ptr> &soluti
             gl::drawSolidRect(rect);
         }
     }
-    cout << endl;
 
 }

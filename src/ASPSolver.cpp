@@ -25,11 +25,13 @@ namespace Puzzle {
         vector<vector<Fact::Ptr>> solution;
 
         try {
+
             control.ground({{"base", {}}});
             auto handle = control.solve();
             for (auto m : handle) {
                 vector<Fact::Ptr> model_facts;
                 for (auto &atom : m.symbols(Clingo::ShowType::Shown)) {
+                    // TODO: This belongs in another object. The domain should probably know the parser
                     if (atom.type() == Clingo::SymbolType::Function) {
                         if (string("cpix") == atom.name()) {
                             auto args = atom.arguments();

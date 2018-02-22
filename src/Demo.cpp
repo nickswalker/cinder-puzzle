@@ -15,12 +15,24 @@ using namespace std;
 class Demo : public App {
 public:
     Puzzle::PixelsRenderer *renderer;
+    Puzzle::PixelsDomain *domain;
     vector<vector<Puzzle::Fact::Ptr> > solutions;
     uint32_t solution_index = 0;
+    uint32_t solution_span = 100;
+    int last_x = 0;
+    int last_y = 0;
+    bool screen_dirty = true;
+    bool domain_dirty = true;
     void setup() override;
     void resize() override;
     void mouseDown( MouseEvent event ) override;
     void mouseDrag( MouseEvent event ) override;
+
+    void mouseUp(MouseEvent event) override;
+
+    void keyDown(KeyEvent event) override;
+
+    void keyUp(KeyEvent event) override;
     void draw() override;
 
 };
@@ -34,27 +46,33 @@ void Demo::setup() {
     color_map.insert(pair<string, Color>(string("g"), Color(0, 1, 0)));
     color_map.insert(pair<string, Color>(string("b"), Color(0, 0, 1)));
     color_map.insert(pair<string, Color>(string("y"), Color(1, 1, 0)));
+
+    vector<string> color_strings;
+    color_strings.emplace_back("r");
+    color_strings.emplace_back("g");
+    color_strings.push_back("b");
+    color_strings.emplace_back("y");
     renderer = new Puzzle::PixelsRenderer(color_map);
     renderer->scale = 16;
-    Puzzle::PixelsDomain domain(40, 30);
-    domain.neighbors_different = true;
-    Puzzle::Puzzle puzzle;
-    puzzle.compose(domain);
-    Puzzle::ASPSolver solver(255);
-    solutions = solver.solve(puzzle);
-    if (solutions.empty()) {
-        cerr << "No solutions found" << endl;
-        cerr << puzzle.to_string() << endl;
-        exit(1);
-    }
+    domain = new Puzzle::PixelsDomain(40, 30, color_strings);
+    domain->neighbors_different = true;
 }
 
 void Demo::resize() {
+    screen_dirty = true;
 }
 
 void Demo::mouseDown(MouseEvent event) {
-    solution_index += 1;
-    writeImage(to_string(solution_index) + ".png", copyWindowSurface());
+    int x = event.getPos().x;
+    int y = event.getPos().y;
+    int grid_x = x / renderer->scale;
+    int grid_y = y / renderer->scale;
+    domain->increment_constraint(grid_x, grid_y);
+    domain_dirty = true;
+
+    last_x = grid_x;
+    last_y = grid_y;
+
 }
 
 void Demo::mouseDrag(MouseEvent event) {
@@ -62,7 +80,59 @@ void Demo::mouseDrag(MouseEvent event) {
 }
 
 void Demo::draw() {
-    renderer->render(solutions.at(solution_index));
+    if (domain_dirty) {
+        Puzzle::Puzzle puzzle;
+        puzzle.compose(*domain);
+        Puzzle::ASPSolver solver(solution_span);
+        solutions = solver.solve(puzzle);
+
+        if (solutions.empty()) {
+            //cerr << puzzle.to_string() << endl;
+            cerr << "No solutions found, removing last constraint" << endl;
+            domain->clear_constraint(last_x, last_y);
+            return;
+
+        }
+        domain_dirty = false;
+        screen_dirty = true;
+    }
+    if (screen_dirty) {
+        renderer->render(solutions.at(solution_index));
+        screen_dirty = false;
+    }
+}
+
+void Demo::mouseUp(MouseEvent event) {
+    AppBase::mouseUp(event);
+}
+
+void Demo::keyDown(KeyEvent event) {
+    AppBase::keyDown(event);
+    switch (event.getCode()) {
+        case KeyEvent::KEY_UP: {
+            solution_index += 1;
+            solution_index %= solution_span;
+            screen_dirty = true;
+            break;
+        }
+        case KeyEvent::KEY_DOWN: {
+            solution_index -= 1;
+            solution_index %= solution_span;
+            screen_dirty = true;
+            break;
+        }
+        case KeyEvent::KEY_s: {
+            writeImage(to_string(solution_index) + ".png", copyWindowSurface());
+            break;
+        }
+        default:
+            break;
+    }
+
+}
+
+void Demo::keyUp(KeyEvent event) {
+    AppBase::keyUp(event);
 }
 
 CINDER_APP(Demo, RendererGl)

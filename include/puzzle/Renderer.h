@@ -10,6 +10,7 @@ namespace Puzzle {
 
         // TODO: Pass in the GL context somehow?
         virtual void render(const std::vector<Fact::Ptr> &solution) = 0;
+
     };
 }
 
