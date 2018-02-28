@@ -28,7 +28,8 @@ include_directories(
 )
 
 add_library(puzzle src/PixelsDomain.cpp src/ASPSolver.cpp src/PixelsRenderer.cpp src/Puzzle.cpp)
-add_executable(demo src/Demo.cpp)
+add_executable(pixels_demo src/PixelsDemo.cpp)
+add_executable(shapes_demo src/shapes_demo.cpp)
 
 target_link_libraries(puzzle
         PUBLIC
@@ -37,11 +38,18 @@ target_link_libraries(puzzle
         ${CLINGO_LIBS}
         )
 
-target_link_libraries( demo
+target_link_libraries(pixels_demo
         PUBLIC
         puzzle
         cinder
         )
+
+target_link_libraries(shapes_demo
+        PUBLIC
+        puzzle
+        cinder
+        )
+
 
 # Make the domains available next to the binary
 file(COPY domains DESTINATION ./)

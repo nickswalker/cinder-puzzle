@@ -12,7 +12,7 @@ using namespace ci::app;
 using namespace std;
 
 
-class Demo : public App {
+class PixelsDemo : public App {
 public:
     Puzzle::PixelsRenderer *renderer;
     Puzzle::PixelsDomain *domain;
@@ -23,21 +23,26 @@ public:
     int last_y = 0;
     bool screen_dirty = true;
     bool domain_dirty = true;
+
     void setup() override;
+
     void resize() override;
-    void mouseDown( MouseEvent event ) override;
-    void mouseDrag( MouseEvent event ) override;
+
+    void mouseDown(MouseEvent event) override;
+
+    void mouseDrag(MouseEvent event) override;
 
     void mouseUp(MouseEvent event) override;
 
     void keyDown(KeyEvent event) override;
 
     void keyUp(KeyEvent event) override;
+
     void draw() override;
 
 };
 
-void Demo::setup() {
+void PixelsDemo::setup() {
     gl::enableDepthRead();
     gl::enableDepthWrite();
 
@@ -61,11 +66,11 @@ void Demo::setup() {
     domain->neighbors_different = true;
 }
 
-void Demo::resize() {
+void PixelsDemo::resize() {
     screen_dirty = true;
 }
 
-void Demo::mouseDown(MouseEvent event) {
+void PixelsDemo::mouseDown(MouseEvent event) {
     int x = event.getPos().x;
     int y = event.getPos().y;
     int grid_x = x / renderer->scale;
@@ -78,11 +83,11 @@ void Demo::mouseDown(MouseEvent event) {
 
 }
 
-void Demo::mouseDrag(MouseEvent event) {
+void PixelsDemo::mouseDrag(MouseEvent event) {
 
 }
 
-void Demo::draw() {
+void PixelsDemo::draw() {
     if (domain_dirty) {
         Puzzle::Puzzle puzzle;
         puzzle.compose(*domain);
@@ -105,11 +110,11 @@ void Demo::draw() {
     }
 }
 
-void Demo::mouseUp(MouseEvent event) {
+void PixelsDemo::mouseUp(MouseEvent event) {
     AppBase::mouseUp(event);
 }
 
-void Demo::keyDown(KeyEvent event) {
+void PixelsDemo::keyDown(KeyEvent event) {
     AppBase::keyDown(event);
     switch (event.getCode()) {
         case KeyEvent::KEY_UP: {
@@ -134,7 +139,7 @@ void Demo::keyDown(KeyEvent event) {
 
 }
 
-void Demo::keyUp(KeyEvent event) {
+void PixelsDemo::keyUp(KeyEvent event) {
     AppBase::keyUp(event);
 }
 

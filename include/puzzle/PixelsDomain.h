@@ -19,7 +19,7 @@ namespace Puzzle {
 
         std::vector<std::string> get_options() const override;
 
-        void set_canvas_size(const size_t width, const size_t height);
+        void set_canvas_size(size_t width, size_t height);
 
         void constrain_pixel(uint32_t x, uint32_t y, const std::string &color);
 
