@@ -1,5 +1,7 @@
 grid_point(1..n, 1..m).
 
+shape_type((rect; triangle)).
+
 % A rectangle implies corners
 corner(X, Y) :- rect(X, Y, W, H).
 corner(A, B) :- rect(X, Y, W, H), A=X+0, B=Y+0.
@@ -25,8 +27,8 @@ line(X, Y, Q, R) :- endpoint(X, Y), endpoint(Q, R).
 line(X, Y, Q, R) :- line(Q, R, X, Y).
 
 % Make all concrete shapes imply their abstraction
-shape(X, Y) :- rect(X, Y, W, H).
-shape(X, Y) :- triangle(X, Y, Q, R, A, B).
+shape(X, Y, rect) :- rect(X, Y, W, H).
+shape(X, Y, triangle) :- triangle(X, Y, Q, R, A, B).
 
 covered(X, Y) :- inside_shape(X, Y).
 
@@ -34,10 +36,10 @@ covered(X, Y) :- inside_shape(X, Y).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % There's one shape placed on some grid point.
-{ shape(X, Y): grid_point(X, Y) } = 1.
+{ shape(X, Y, S): grid_point(X, Y), shape_type(S) } = 1.
 
 % Generate n (1) shapes
-{ rect(X, Y, W, H): W=1..n, H=1..m } = 1 :- shape(X, Y).
+{ rect(X, Y, W, H): W=1..n, H=1..m } = 1 :- shape(X, Y, rect).
 
 % Cover the grid
 :- not covered(N, M), grid_point(N, M), N=1..n, M=1..m.
@@ -46,6 +48,6 @@ covered(X, Y) :- inside_shape(X, Y).
 
 
 %#show corner/2.
-#show rect/4.
+%#show rect/4.
 %#show triangle/6.
 %#show line/4.
