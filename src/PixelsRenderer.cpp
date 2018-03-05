@@ -14,7 +14,7 @@ Puzzle::PixelsRenderer::PixelsRenderer(map<string, Color> color_map) : color_map
 
 }
 
-void Puzzle::PixelsRenderer::render(const std::vector<Puzzle::Fact::Ptr> &solution) {
+void Puzzle::PixelsRenderer::render(const vector<Fact::Ptr> &solution) {
     gl::clear(Color(0, 0.0f, 0.0f));
 
     for (auto &fact: solution) {

@@ -10,7 +10,8 @@ namespace Puzzle {
 
         explicit PixelsRenderer(std::map<std::string, cinder::Color> color_map);
 
-        void render(const std::vector<Fact::Ptr> &solution);
+        void render(const std::vector<Fact::Ptr> &solution) override;
+
     };
 }
 

@@ -1,9 +1,7 @@
 #include "puzzle/ASPSolver.h"
-
-#include <clingo.hh>
-#include <puzzle/Puzzle.h>
 #include <puzzle/RawFact.h>
 #include <puzzle/PixelColor.h>
+#include <puzzle/Constant.h>
 
 using namespace Clingo;
 using namespace std;
@@ -19,8 +17,11 @@ namespace Puzzle {
             if (auto raw_fact = dynamic_pointer_cast<RawFact>(fact)) {
                 control.add("base", {}, raw_fact->fact.c_str());
                 continue;
+            } else if (auto constant = dynamic_pointer_cast<Constant>(fact)) {
+                ostringstream out;
+                out << "#const " << constant->name << "=" << constant->value << ".";
+                control.add("base", {}, out.str().c_str());
             }
-
         }
         vector<vector<Fact::Ptr>> solution;
 
@@ -31,15 +32,11 @@ namespace Puzzle {
             for (auto m : handle) {
                 vector<Fact::Ptr> model_facts;
                 for (auto &atom : m.symbols(Clingo::ShowType::Shown)) {
-                    //cout << atom << endl;
-                    // TODO: This belongs in another object. The domain should probably know the parser
-                    if (atom.type() == Clingo::SymbolType::Function) {
-                        if (string("cpix") == atom.name()) {
-                            auto args = atom.arguments();
-                            model_facts.push_back(
-                                    make_shared<PixelColor>(args[1].number(), args[2].number(), args[0].name()));
-                        }
+                    auto result = (this->parser)(atom);
+                    if (!result) {
+                        continue;
                     }
+                    model_facts.push_back(result);
                 }
                 std::sort(model_facts.begin(), model_facts.end());
                 solution.push_back(model_facts);
@@ -61,5 +58,10 @@ namespace Puzzle {
 
     void ASPSolver::load(const string &path) {
         control.load(path.c_str());
+    }
+
+    void ASPSolver::configure_parser(std::function<Fact::Ptr(Clingo::Symbol)> &parser) {
+        this->parser = parser;
+
     }
 }

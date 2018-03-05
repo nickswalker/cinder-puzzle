@@ -7,6 +7,7 @@
 #include <puzzle/RawFact.h>
 #include <boost/make_shared.hpp>
 #include <set>
+#include <puzzle/Constant.h>
 
 using namespace std;
 
@@ -31,11 +32,8 @@ namespace Puzzle {
     vector<Fact::Ptr> PixelsDomain::get_facts() const {
         vector<Fact::Ptr> facts = this->facts;
         // Define the canvas size
-        ostringstream out;
-        out << "#const n=" << this->width << ".";
-        out << "#const m=" << this->height << ".";
-        Fact::Ptr canvas_configuration = make_shared<RawFact>(out.str());
-        facts.emplace_back(canvas_configuration);
+        facts.emplace_back(make_shared<Constant>("n", width));
+        facts.emplace_back(make_shared<Constant>("m", height));
         if (neighbors_different) {
             facts.emplace_back(make_shared<RawFact>(
                     ":- neighbor(A, B, C, D), pix(A, B), pix(C, D), cpix(Z, A, B), cpix(Z, C, D), col(Z)."));

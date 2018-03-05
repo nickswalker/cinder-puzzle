@@ -5,7 +5,9 @@
 #include <puzzle/PixelsDomain.h>
 #include <puzzle/Puzzle.h>
 #include <puzzle/PixelsRenderer.h>
+#include <puzzle/PixelColor.h>
 #include <map>
+#include <functional>
 
 using namespace ci;
 using namespace ci::app;
@@ -87,6 +89,18 @@ void PixelsDemo::draw() {
         Puzzle::Puzzle puzzle;
         puzzle.compose(*domain);
         Puzzle::ASPSolver solver(solution_span);
+        function<Puzzle::Fact::Ptr(Clingo::Symbol)> parser = [](Clingo::Symbol atom) -> Puzzle::Fact::Ptr {
+            //cout << atom << endl;
+            if (atom.type() == Clingo::SymbolType::Function) {
+                if (string("cpix") == atom.name()) {
+                    auto args = atom.arguments();
+                    auto result = make_shared<Puzzle::PixelColor>(args[1].number(), args[2].number(), args[0].name());
+                    return dynamic_pointer_cast<Puzzle::Fact>(result);
+                }
+                return Puzzle::Fact::Ptr();
+            }
+        };
+        solver.configure_parser(parser);
         solutions = solver.solve(puzzle);
 
         if (solutions.empty()) {
@@ -138,4 +152,4 @@ void PixelsDemo::keyUp(KeyEvent event) {
     AppBase::keyUp(event);
 }
 
-CINDER_APP(Demo, RendererGl)
+CINDER_APP(PixelsDemo, RendererGl)
