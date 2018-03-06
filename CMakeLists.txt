@@ -27,7 +27,7 @@ include_directories(
         include
 )
 
-add_library(puzzle src/PixelsDomain.cpp src/ASPSolver.cpp src/PixelsRenderer.cpp src/Puzzle.cpp src/Constant.cpp src/ShapesRenderer.cpp)
+add_library(puzzle src/PixelsDomain.cpp src/ASPSolver.cpp src/PixelsRenderer.cpp src/Puzzle.cpp src/Constant.cpp src/ShapesRenderer.cpp src/ShapesDomain.cpp)
 add_executable(pixels_demo src/pixels_demo.cpp)
 add_executable(shapes_demo src/shapes_demo.cpp)
 

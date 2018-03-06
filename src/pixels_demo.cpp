@@ -127,7 +127,6 @@ void PixelsDemo::draw() {
             cerr << "No solutions found, removing last constraint" << endl;
             domain->clear_constraint(last_x, last_y);
             return;
-
         }
         domain_dirty = false;
         screen_dirty = true;

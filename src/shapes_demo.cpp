@@ -6,17 +6,23 @@
 #include <puzzle/Puzzle.h>
 #include <puzzle/PixelsRenderer.h>
 #include <map>
+#include <puzzle/Rect.h>
+#include <functional>
+#include <puzzle/ShapesRenderer.h>
+#include <puzzle/ShapesDomain.h>
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
 
-class PixelsDemo : public App {
+class ShapesDemo : public App {
 public:
-    Puzzle::PixelsRenderer *renderer;
-    Puzzle::PixelsDomain *domain;
+    Puzzle::ShapesRenderer *renderer;
+    Puzzle::ShapesDomain *domain;
     vector<vector<Puzzle::Fact::Ptr> > solutions;
+    function<Puzzle::Fact::Ptr(Clingo::Symbol)> parser;
+    function<string(Puzzle::Fact::Ptr)> fact_handler;
     uint32_t solution_index = 0;
     uint32_t solution_span = 100;
     int last_x = 0;
@@ -42,79 +48,79 @@ public:
 
 };
 
-void PixelsDemo::setup() {
+void ShapesDemo::setup() {
     gl::enableDepthRead();
     gl::enableDepthWrite();
 
-    map<string, Color> color_map;
-    //color_map.insert(pair<string, Color>(string("base0"), Color(.39, .48, .51)));
-    //color_map.insert(pair<string, Color>(string("base01"), Color(.34, .43, .45)));
-    //color_map.insert(pair<string, Color>(string("base03"), Color(.00, .16, .21)));
-    color_map.insert(pair<string, Color>(string("base02"), Color(.02, .21, .26)));
-    color_map.insert(pair<string, Color>(string("blue"), Color(.14, .54, .82)));
-    color_map.insert(pair<string, Color>(string("green"), Color(.52, .60, .00)));
-    color_map.insert(pair<string, Color>(string("cyan"), Color(.16, .63, .59)));
-    color_map.insert(pair<string, Color>(string("orange"), Color(.79, .29, .08)));
+    renderer = new Puzzle::ShapesRenderer();
 
-    vector<string> color_strings;
-    for (auto &pair: color_map) {
-        color_strings.emplace_back(pair.first);
-    }
-    renderer = new Puzzle::PixelsRenderer(color_map);
+    parser = [](Clingo::Symbol atom) -> Puzzle::Fact::Ptr {
+        if (atom.type() == Clingo::SymbolType::Function) {
+            if (string("rect") == atom.name()) {
+                auto args = atom.arguments();
+                auto result = make_shared<Puzzle::Rect>(args[0].number(), args[1].number(), args[2].number(),
+                                                        args[3].number());
+                return dynamic_pointer_cast<Puzzle::Fact>(result);
+            }
+            return Puzzle::Fact::Ptr();
+        }
+    };
     renderer->scale = 16;
-    domain = new Puzzle::PixelsDomain(40, 30, color_strings);
-    domain->neighbors_different = true;
+    domain = new Puzzle::ShapesDomain(2, 2);
 }
 
-void PixelsDemo::resize() {
+void ShapesDemo::resize() {
     screen_dirty = true;
 }
 
-void PixelsDemo::mouseDown(MouseEvent event) {
+void ShapesDemo::mouseDown(MouseEvent event) {
     int x = event.getPos().x;
     int y = event.getPos().y;
     int grid_x = x / renderer->scale;
     int grid_y = y / renderer->scale;
-    domain->increment_constraint(grid_x, grid_y);
-    domain_dirty = true;
+
+    //TODO: Poke the domain somehow
 
     last_x = grid_x;
     last_y = grid_y;
 
 }
 
-void PixelsDemo::mouseDrag(MouseEvent event) {
+void ShapesDemo::mouseDrag(MouseEvent event) {
 
 }
 
-void PixelsDemo::draw() {
+void ShapesDemo::draw() {
     if (domain_dirty) {
         Puzzle::Puzzle puzzle;
         puzzle.compose(*domain);
         Puzzle::ASPSolver solver(solution_span);
+        solver.configure_parser(parser);
+        solver.configure_custom_fact_handler(fact_handler);
         solutions = solver.solve(puzzle);
 
         if (solutions.empty()) {
             cerr << puzzle.to_string() << endl;
             cerr << "No solutions found, removing last constraint" << endl;
-            domain->clear_constraint(last_x, last_y);
-            return;
-
+            // TODO: Back out somehow
+            //return;
         }
         domain_dirty = false;
         screen_dirty = true;
     }
     if (screen_dirty) {
-        renderer->render(solutions.at(solution_index));
+        if (!solutions.empty()) {
+            renderer->render(solutions.at(solution_index));
+        }
         screen_dirty = false;
     }
 }
 
-void PixelsDemo::mouseUp(MouseEvent event) {
+void ShapesDemo::mouseUp(MouseEvent event) {
     AppBase::mouseUp(event);
 }
 
-void PixelsDemo::keyDown(KeyEvent event) {
+void ShapesDemo::keyDown(KeyEvent event) {
     AppBase::keyDown(event);
     switch (event.getCode()) {
         case KeyEvent::KEY_UP: {
@@ -139,8 +145,8 @@ void PixelsDemo::keyDown(KeyEvent event) {
 
 }
 
-void PixelsDemo::keyUp(KeyEvent event) {
+void ShapesDemo::keyUp(KeyEvent event) {
     AppBase::keyUp(event);
 }
 
-CINDER_APP(Demo, RendererGl)
+CINDER_APP(ShapesDemo, RendererGl)

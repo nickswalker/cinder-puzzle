@@ -22,13 +22,16 @@ namespace Puzzle {
                 ostringstream out;
                 out << "#const " << constant->name << "=" << constant->value << ".";
                 control.add("base", {}, out.str().c_str());
-            } else {
+            } else if (custom_fact_handler) {
                 auto result = custom_fact_handler(fact);
                 if (result.empty()) {
                     cerr << "Couldn't handle fact: " << fact << endl;
                     continue;
                 }
                 control.add("base", {}, result.c_str());
+            } else {
+                cerr << "Couldn't handle fact: " << fact << endl;
+                continue;
             }
         }
         vector<vector<Fact::Ptr>> solution;
@@ -40,7 +43,7 @@ namespace Puzzle {
             for (auto m : handle) {
                 vector<Fact::Ptr> model_facts;
                 for (auto &atom : m.symbols(Clingo::ShowType::Shown)) {
-                    auto result = (this->parser)(atom);
+                    auto result = this->parser(atom);
                     if (!result) {
                         continue;
                     }
@@ -52,7 +55,7 @@ namespace Puzzle {
             cout << handle.get() << endl;
         }
         catch (exception const &e) {
-            cerr << "example failed with: " << e.what() << endl;
+            cerr << "Grounding failed with: " << e.what() << endl;
         }
         return solution;
     }
