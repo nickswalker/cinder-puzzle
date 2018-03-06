@@ -12,8 +12,10 @@ namespace Puzzle {
     protected:
         Clingo::Logger logger;
         Clingo::Control control;
-    public:
         std::function<Fact::Ptr(Clingo::Symbol & )> parser;
+        std::function<std::string(Fact::Ptr)> custom_fact_handler;
+    public:
+
 
         explicit ASPSolver(uint32_t max_solutions);
 
@@ -24,6 +26,8 @@ namespace Puzzle {
         void configure_parser(std::function<Fact::Ptr(Clingo::Symbol)> &parser);
 
         std::vector<std::vector<Fact::Ptr>> solve(const Puzzle &puzzle) override;
+
+        void configure_custom_fact_handler(std::function<std::string(Fact::Ptr)> &parser);
 
     };
 

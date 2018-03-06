@@ -8,6 +8,7 @@
 #include <boost/make_shared.hpp>
 #include <set>
 #include <puzzle/Constant.h>
+#include <puzzle/PixelColor.h>
 
 using namespace std;
 
@@ -35,6 +36,11 @@ namespace Puzzle {
         facts.emplace_back(make_shared<Constant>("n", width));
         facts.emplace_back(make_shared<Constant>("m", height));
         if (neighbors_different) {
+            // TODO: Domain shouldn't know about ASP
+            // In principle, the domain shouldn't care about how the instance is solved. It
+            // should state facts and those facts are then realized in a form that a specific
+            // solver can handle. RawFact is an expedient hack to avoid formally specifying
+            // things like
             facts.emplace_back(make_shared<RawFact>(
                     ":- neighbor(A, B, C, D), pix(A, B), pix(C, D), cpix(Z, A, B), cpix(Z, C, D), col(Z)."));
         }
@@ -43,10 +49,9 @@ namespace Puzzle {
                 int constraint = constraints[j * width + i];
                 if (constraint != 0) {
                     auto color_str = colors[constraint - 1];
-                    ostringstream s;
-                    // The domain is 0 indexed
-                    s << "cpix(" << color_str << ", " << i + 1 << ", " << j + 1 << ").";
-                    facts.emplace_back(make_shared<RawFact>(s.str()));
+                    // Note that the domain is 1 indexed
+                    auto color_pix = make_shared<PixelColor>(i + 1, j + 1, color_str);
+                    facts.emplace_back(color_pix);
                 }
             }
         }

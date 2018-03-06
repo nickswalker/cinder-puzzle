@@ -2,6 +2,7 @@
 #include <puzzle/RawFact.h>
 #include <puzzle/PixelColor.h>
 #include <puzzle/Constant.h>
+#include <clingo.hh>
 
 using namespace Clingo;
 using namespace std;
@@ -21,6 +22,13 @@ namespace Puzzle {
                 ostringstream out;
                 out << "#const " << constant->name << "=" << constant->value << ".";
                 control.add("base", {}, out.str().c_str());
+            } else {
+                auto result = custom_fact_handler(fact);
+                if (result.empty()) {
+                    cerr << "Couldn't handle fact: " << fact << endl;
+                    continue;
+                }
+                control.add("base", {}, result.c_str());
             }
         }
         vector<vector<Fact::Ptr>> solution;
@@ -62,6 +70,9 @@ namespace Puzzle {
 
     void ASPSolver::configure_parser(std::function<Fact::Ptr(Clingo::Symbol)> &parser) {
         this->parser = parser;
+    }
 
+    void ASPSolver::configure_custom_fact_handler(std::function<string(Fact::Ptr)> &parser) {
+        this->custom_fact_handler = parser;
     }
 }

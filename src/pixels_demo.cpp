@@ -18,6 +18,8 @@ class PixelsDemo : public App {
 public:
     Puzzle::PixelsRenderer *renderer;
     Puzzle::PixelsDomain *domain;
+    function<Puzzle::Fact::Ptr(Clingo::Symbol)> parser;
+    function<string(Puzzle::Fact::Ptr)> fact_handler;
     vector<vector<Puzzle::Fact::Ptr> > solutions;
     uint32_t solution_index = 0;
     uint32_t solution_span = 100;
@@ -25,16 +27,21 @@ public:
     int last_y = 0;
     bool screen_dirty = true;
     bool domain_dirty = true;
+
     void setup() override;
+
     void resize() override;
-    void mouseDown( MouseEvent event ) override;
-    void mouseDrag( MouseEvent event ) override;
+
+    void mouseDown(MouseEvent event) override;
+
+    void mouseDrag(MouseEvent event) override;
 
     void mouseUp(MouseEvent event) override;
 
     void keyDown(KeyEvent event) override;
 
     void keyUp(KeyEvent event) override;
+
     void draw() override;
 
 };
@@ -61,6 +68,28 @@ void PixelsDemo::setup() {
     renderer->scale = 16;
     domain = new Puzzle::PixelsDomain(40, 30, color_strings);
     domain->neighbors_different = true;
+
+    parser = [](Clingo::Symbol atom) -> Puzzle::Fact::Ptr {
+        //cout << atom << endl;
+        if (atom.type() == Clingo::SymbolType::Function) {
+            if (string("cpix") == atom.name()) {
+                auto args = atom.arguments();
+                auto result = make_shared<Puzzle::PixelColor>(args[1].number(), args[2].number(), args[0].name());
+                return dynamic_pointer_cast<Puzzle::Fact>(result);
+            }
+            return Puzzle::Fact::Ptr();
+        }
+    };
+
+    fact_handler = [](Puzzle::Fact::Ptr fact) -> string {
+        if (auto pixel = dynamic_pointer_cast<Puzzle::PixelColor>(fact)) {
+            ostringstream out;
+            out << "cpix(" << pixel->color << "," << pixel->x << "," << pixel->y << ").";
+            return out.str();
+        } else {
+            return "";
+        }
+    };
 }
 
 void PixelsDemo::resize() {
@@ -89,17 +118,7 @@ void PixelsDemo::draw() {
         Puzzle::Puzzle puzzle;
         puzzle.compose(*domain);
         Puzzle::ASPSolver solver(solution_span);
-        function<Puzzle::Fact::Ptr(Clingo::Symbol)> parser = [](Clingo::Symbol atom) -> Puzzle::Fact::Ptr {
-            //cout << atom << endl;
-            if (atom.type() == Clingo::SymbolType::Function) {
-                if (string("cpix") == atom.name()) {
-                    auto args = atom.arguments();
-                    auto result = make_shared<Puzzle::PixelColor>(args[1].number(), args[2].number(), args[0].name());
-                    return dynamic_pointer_cast<Puzzle::Fact>(result);
-                }
-                return Puzzle::Fact::Ptr();
-            }
-        };
+        solver.configure_custom_fact_handler(fact_handler);
         solver.configure_parser(parser);
         solutions = solver.solve(puzzle);
 

@@ -24,8 +24,8 @@ namespace Puzzle {
 
     string Puzzle::to_string() const {
         std::string ret;
-        for (int i = 0; i < facts.size(); ++i) {
-            ret += facts.at(i)->to_string();
+        for (const auto &fact : facts) {
+            ret += fact->to_string();
             ret += "\n";
         }
         return ret;
