@@ -25,7 +25,10 @@ namespace Puzzle {
 
         void configure_parser(std::function<Fact::Ptr(Clingo::Symbol)> &parser);
 
+        // Synchronous
         std::vector<std::vector<Fact::Ptr>> solve(const Puzzle &puzzle) override;
+
+        void solve(const Puzzle &puzzle, std::function<void(std::vector<Fact::Ptr>)> callback);
 
         void configure_custom_fact_handler(std::function<std::string(Fact::Ptr)> &parser);
 
