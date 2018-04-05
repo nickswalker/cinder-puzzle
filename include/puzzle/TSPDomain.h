@@ -22,6 +22,7 @@ namespace Puzzle {
         std::vector<std::string> get_options() const override;
 
 
+        bool minimize_cost;
     };
 }
 

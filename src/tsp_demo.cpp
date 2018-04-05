@@ -11,6 +11,7 @@
 #include <puzzle/TSPRenderer.h>
 #include <puzzle/TSPDomain.h>
 #include <puzzle/CycleEdge.h>
+#include <puzzle/Fact1.h>
 
 using namespace ci;
 using namespace ci::app;
@@ -58,15 +59,21 @@ void TSPDemo::setup() {
     vector<string> color_strings;
     renderer = new Puzzle::TSPRenderer();
     domain = new Puzzle::TSPDomain();
+    domain->minimize_cost = true;
 
     parser = [](Clingo::Symbol atom) -> Puzzle::Fact::Ptr {
-        cout << atom << endl;
         if (atom.type() == Clingo::SymbolType::Function) {
             // TODO: Parser specific exception handler? Otherwise get weird catches on the grounding handler
             if (string("cycle") == atom.name()) {
                 auto args = atom.arguments();
                 auto result = make_shared<Puzzle::CycleEdge>(args[0].number(), args[1].number());
                 return dynamic_pointer_cast<Puzzle::Fact>(result);
+            } else if (string("total_cost") == atom.name()) {
+
+                auto args = atom.arguments();
+                auto result = make_shared<Puzzle::Fact1>(args[0].number());
+                return dynamic_pointer_cast<Puzzle::Fact>(result);
+
             }
             return Puzzle::Fact::Ptr();
         }
@@ -124,7 +131,7 @@ void TSPDemo::draw() {
         screen_dirty = true;
     }
     if (screen_dirty) {
-        if (solutions.size() != 0) {
+        if (solution_index < solutions.size()) {
             renderer->render(solutions.at(solution_index));
         }
         screen_dirty = false;
@@ -139,14 +146,18 @@ void TSPDemo::keyDown(KeyEvent event) {
     AppBase::keyDown(event);
     switch (event.getCode()) {
         case KeyEvent::KEY_UP: {
-            solution_index += 1;
-            solution_index %= solution_span;
+
+            if (solution_index < solutions.size() - 1) {
+                solution_index += 1;
+            }
             screen_dirty = true;
             break;
         }
         case KeyEvent::KEY_DOWN: {
-            solution_index -= 1;
-            solution_index %= solution_span;
+            if (solution_index > 0) {
+                solution_index -= 1;
+            }
+
             screen_dirty = true;
             break;
         }
@@ -158,10 +169,12 @@ void TSPDemo::keyDown(KeyEvent event) {
             break;
     }
 
+    cout << solution_index << endl;
+
 }
 
 void TSPDemo::keyUp(KeyEvent event) {
     AppBase::keyUp(event);
 }
 
-CINDER_APP(TSPDemo, RendererGl)
+CINDER_APP(TSPDemo, RendererGl(RendererGl::Options().msaa(4)))

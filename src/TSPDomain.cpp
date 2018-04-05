@@ -35,6 +35,14 @@ namespace Puzzle {
             facts.emplace_back(nodes);
         }
 
+        if (minimize_cost) {
+            ostringstream s;
+            s << "#minimize {  C : cost(X, Y, C), cycle(X, Y) }.";
+            auto minimize = make_shared<RawFact>(s.str());
+            facts.emplace_back(minimize);
+
+        }
+
         for (int i = 0; i < points.size(); i++) {
             for (int j = 0; j < points.size(); j++) {
                 // Only the top left of the adjacency matrix

@@ -59,5 +59,6 @@ target_link_libraries(tsp_demo
 
 
 # Make the domains available next to the binary
+# TODO: Make this actually update whenever domains are changed between builds
 file(COPY domains DESTINATION ./)
 file(COPY resources DESTINATION ./assets)

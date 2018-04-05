@@ -52,7 +52,6 @@ namespace Puzzle {
                 std::sort(model_facts.begin(), model_facts.end());
                 solution.push_back(model_facts);
             }
-            cout << handle.get() << endl;
         }
         catch (exception const &e) {
             cerr << "Grounding failed with: " << e.what() << endl;
