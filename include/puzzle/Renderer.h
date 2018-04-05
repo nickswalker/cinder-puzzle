@@ -2,6 +2,7 @@
 #define PUZZLE_RENDERER_H
 
 #include "Fact.h"
+#include <vector>
 
 namespace Puzzle {
     class Renderer {

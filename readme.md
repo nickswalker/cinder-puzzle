@@ -1,4 +1,4 @@
-# Creasp
+# cinder-puzzle
 
 Explorations with ASP.
 

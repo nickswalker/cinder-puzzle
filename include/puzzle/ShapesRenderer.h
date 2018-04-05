@@ -2,6 +2,7 @@
 #define PUZZLE_SHAPESRENDERER_H
 
 #include <puzzle/Renderer.h>
+#include <vector>
 
 namespace Puzzle {
     class ShapesRenderer : public Renderer {
