@@ -54,7 +54,7 @@ void PixelsDemo::setup() {
     //color_map.insert(pair<string, Color>(string("base0"), Color(.39, .48, .51)));
     //color_map.insert(pair<string, Color>(string("base01"), Color(.34, .43, .45)));
     //color_map.insert(pair<string, Color>(string("base03"), Color(.00, .16, .21)));
-    color_map.insert(pair<string, Color>(string("base02"), Color(.02, .21, .26)));
+    color_map.emplace(string("base02"), Color(.02, .21, .26));
     color_map.insert(pair<string, Color>(string("blue"), Color(.14, .54, .82)));
     color_map.insert(pair<string, Color>(string("green"), Color(.52, .60, .00)));
     color_map.insert(pair<string, Color>(string("cyan"), Color(.16, .63, .59)));

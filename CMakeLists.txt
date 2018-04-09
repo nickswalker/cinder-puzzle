@@ -27,7 +27,9 @@ include_directories(
         include
 )
 
-add_library(puzzle src/PixelsDomain.cpp src/ASPSolver.cpp src/PixelsRenderer.cpp src/Puzzle.cpp src/Constant.cpp src/ShapesRenderer.cpp src/ShapesDomain.cpp src/TSPRenderer.cpp src/TSPRenderer.cpp include/puzzle/Point.h src/TSPDomain.cpp include/puzzle/TSPDomain.h)
+add_library(puzzle src/PixelsDomain.cpp src/ASPSolver.cpp src/PixelsRenderer.cpp src/Puzzle.cpp src/Constant.cpp src/ShapesRenderer.cpp src/ShapesDomain.cpp src/TSPDomain.cpp src/TSPRenderer.cpp src/TSPRenderer.cpp)
+add_library(puzzle_demos src/Colors.cpp)
+
 add_executable(pixels_demo src/pixels_demo.cpp)
 add_executable(shapes_demo src/shapes_demo.cpp)
 add_executable(tsp_demo src/tsp_demo.cpp)
@@ -39,21 +41,31 @@ target_link_libraries(puzzle
         ${CLINGO_LIBS}
         )
 
+target_link_libraries(puzzle_demos
+        PUBLIC
+        cinder
+        cairo
+        ${CLINGO_LIBS}
+        )
+
 target_link_libraries(pixels_demo
         PUBLIC
         puzzle
+        puzzle_demos
         cinder
         )
 
 target_link_libraries(shapes_demo
         PUBLIC
         puzzle
+        puzzle_demos
         cinder
         )
 
 target_link_libraries(tsp_demo
         PUBLIC
         puzzle
+        puzzle_demos
         cinder
         )
 

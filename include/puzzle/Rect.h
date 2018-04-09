@@ -13,7 +13,7 @@ namespace Puzzle {
         size_t x;
         size_t y;
 
-        explicit Rect(size_t width, size_t height, size_t x, size_t y) : width(width), height(height), x(x), y(y) {};
+        explicit Rect(size_t x, size_t y, size_t width, size_t height) : width(width), height(height), x(x), y(y) {};
 
         std::string to_string() override {
             std::ostringstream out;
