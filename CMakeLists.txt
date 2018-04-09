@@ -30,9 +30,9 @@ include_directories(
 add_library(puzzle src/PixelsDomain.cpp src/ASPSolver.cpp src/PixelsRenderer.cpp src/Puzzle.cpp src/Constant.cpp src/ShapesRenderer.cpp src/ShapesDomain.cpp src/TSPDomain.cpp src/TSPRenderer.cpp src/TSPRenderer.cpp)
 add_library(puzzle_demos src/Colors.cpp)
 
-add_executable(pixels_demo src/pixels_demo.cpp)
-add_executable(shapes_demo src/shapes_demo.cpp)
-add_executable(tsp_demo src/tsp_demo.cpp)
+add_executable(pixels_demo src/demos/pixels_demo.cpp)
+add_executable(shapes_demo src/demos/shapes_demo.cpp)
+add_executable(tsp_demo src/demos/tsp_demo.cpp)
 
 target_link_libraries(puzzle
         PUBLIC
