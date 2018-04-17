@@ -9,4 +9,7 @@ reached(Y) :- cycle(X, Y), reached(X).
 
 :- node(Y), not reached(Y).
 
-%#show cycle/2.
+total_cost(Z) :- Z = # sum{ C : cost(X, Y, C), cycle(X, Y) }.
+
+#show cycle/2.
+#show total_cost/1.

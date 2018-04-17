@@ -8,6 +8,7 @@ namespace Puzzle {
         std::vector<Fact::Ptr> facts;
         size_t width;
         size_t height;
+        size_t num_shapes;
 
     public:
         ShapesDomain(size_t width, size_t height);
@@ -17,6 +18,9 @@ namespace Puzzle {
         std::vector<std::string> get_options() const;
 
         void set_canvas_size(size_t width, size_t height);
+
+        void set_num_shapes(size_t num_shapes);
+
     };
 }
 

@@ -27,12 +27,21 @@ include_directories(
         include
 )
 
-add_library(puzzle src/PixelsDomain.cpp src/ASPSolver.cpp src/PixelsRenderer.cpp src/Puzzle.cpp src/Constant.cpp src/ShapesRenderer.cpp src/ShapesDomain.cpp src/TSPRenderer.cpp src/TSPRenderer.cpp include/puzzle/Point.h src/TSPDomain.cpp include/puzzle/TSPDomain.h)
-add_executable(pixels_demo src/pixels_demo.cpp)
-add_executable(shapes_demo src/shapes_demo.cpp)
-add_executable(tsp_demo src/tsp_demo.cpp)
+add_library(puzzle src/PixelsDomain.cpp src/ASPSolver.cpp src/PixelsRenderer.cpp src/Puzzle.cpp src/Constant.cpp src/ShapesRenderer.cpp src/ShapesDomain.cpp src/TSPDomain.cpp src/TSPRenderer.cpp src/TSPRenderer.cpp)
+add_library(puzzle_demos src/Colors.cpp)
+
+add_executable(pixels_demo src/demos/pixels_demo.cpp)
+add_executable(shapes_demo src/demos/shapes_demo.cpp)
+add_executable(tsp_demo src/demos/tsp_demo.cpp)
 
 target_link_libraries(puzzle
+        PUBLIC
+        cinder
+        cairo
+        ${CLINGO_LIBS}
+        )
+
+target_link_libraries(puzzle_demos
         PUBLIC
         cinder
         cairo
@@ -42,22 +51,26 @@ target_link_libraries(puzzle
 target_link_libraries(pixels_demo
         PUBLIC
         puzzle
+        puzzle_demos
         cinder
         )
 
 target_link_libraries(shapes_demo
         PUBLIC
         puzzle
+        puzzle_demos
         cinder
         )
 
 target_link_libraries(tsp_demo
         PUBLIC
         puzzle
+        puzzle_demos
         cinder
         )
 
 
 # Make the domains available next to the binary
+# TODO: Make this actually update whenever domains are changed between builds
 file(COPY domains DESTINATION ./)
 file(COPY resources DESTINATION ./assets)

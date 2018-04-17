@@ -5,24 +5,22 @@
 #include <puzzle/PixelsDomain.h>
 #include <puzzle/Puzzle.h>
 #include <puzzle/PixelsRenderer.h>
+#include <puzzle/PixelColor.h>
 #include <map>
-#include <puzzle/Rect.h>
 #include <functional>
-#include <puzzle/ShapesRenderer.h>
-#include <puzzle/ShapesDomain.h>
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
 
-class ShapesDemo : public App {
+class PixelsDemo : public App {
 public:
-    Puzzle::ShapesRenderer *renderer;
-    Puzzle::ShapesDomain *domain;
-    vector<vector<Puzzle::Fact::Ptr> > solutions;
+    Puzzle::PixelsRenderer *renderer;
+    Puzzle::PixelsDomain *domain;
     function<Puzzle::Fact::Ptr(Clingo::Symbol)> parser;
     function<string(Puzzle::Fact::Ptr)> fact_handler;
+    vector<vector<Puzzle::Fact::Ptr> > solutions;
     uint32_t solution_index = 0;
     uint32_t solution_span = 100;
     int last_x = 0;
@@ -48,79 +46,102 @@ public:
 
 };
 
-void ShapesDemo::setup() {
+void PixelsDemo::setup() {
     gl::enableDepthRead();
     gl::enableDepthWrite();
 
-    renderer = new Puzzle::ShapesRenderer();
+    map<string, Color> color_map;
+    //color_map.insert(pair<string, Color>(string("base0"), Color(.39, .48, .51)));
+    //color_map.insert(pair<string, Color>(string("base01"), Color(.34, .43, .45)));
+    //color_map.insert(pair<string, Color>(string("base03"), Color(.00, .16, .21)));
+    color_map.emplace(string("base02"), Color(.02, .21, .26));
+    color_map.insert(pair<string, Color>(string("blue"), Color(.14, .54, .82)));
+    color_map.insert(pair<string, Color>(string("green"), Color(.52, .60, .00)));
+    color_map.insert(pair<string, Color>(string("cyan"), Color(.16, .63, .59)));
+    color_map.insert(pair<string, Color>(string("orange"), Color(.79, .29, .08)));
+
+    vector<string> color_strings;
+    for (auto &pair: color_map) {
+        color_strings.emplace_back(pair.first);
+    }
+    renderer = new Puzzle::PixelsRenderer(color_map);
+    renderer->scale = 16;
+    domain = new Puzzle::PixelsDomain(40, 30, color_strings);
+    domain->neighbors_different = true;
 
     parser = [](Clingo::Symbol atom) -> Puzzle::Fact::Ptr {
+        //cout << atom << endl;
         if (atom.type() == Clingo::SymbolType::Function) {
-            if (string("rect") == atom.name()) {
+            if (string("cpix") == atom.name()) {
                 auto args = atom.arguments();
-                auto result = make_shared<Puzzle::Rect>(args[0].number(), args[1].number(), args[2].number(),
-                                                        args[3].number());
+                auto result = make_shared<Puzzle::PixelColor>(args[1].number(), args[2].number(), args[0].name());
                 return dynamic_pointer_cast<Puzzle::Fact>(result);
             }
             return Puzzle::Fact::Ptr();
         }
     };
-    renderer->scale = 16;
-    domain = new Puzzle::ShapesDomain(2, 2);
+
+    fact_handler = [](Puzzle::Fact::Ptr fact) -> string {
+        if (auto pixel = dynamic_pointer_cast<Puzzle::PixelColor>(fact)) {
+            ostringstream out;
+            out << "cpix(" << pixel->color << "," << pixel->x << "," << pixel->y << ").";
+            return out.str();
+        } else {
+            return "";
+        }
+    };
 }
 
-void ShapesDemo::resize() {
+void PixelsDemo::resize() {
     screen_dirty = true;
 }
 
-void ShapesDemo::mouseDown(MouseEvent event) {
+void PixelsDemo::mouseDown(MouseEvent event) {
     int x = event.getPos().x;
     int y = event.getPos().y;
     int grid_x = x / renderer->scale;
     int grid_y = y / renderer->scale;
-
-    //TODO: Poke the domain somehow
+    domain->increment_constraint(grid_x, grid_y);
+    domain_dirty = true;
 
     last_x = grid_x;
     last_y = grid_y;
 
 }
 
-void ShapesDemo::mouseDrag(MouseEvent event) {
+void PixelsDemo::mouseDrag(MouseEvent event) {
 
 }
 
-void ShapesDemo::draw() {
+void PixelsDemo::draw() {
     if (domain_dirty) {
         Puzzle::Puzzle puzzle;
         puzzle.compose(*domain);
         Puzzle::ASPSolver solver(solution_span);
-        solver.configure_parser(parser);
         solver.configure_custom_fact_handler(fact_handler);
+        solver.configure_parser(parser);
         solutions = solver.solve(puzzle);
 
         if (solutions.empty()) {
             cerr << puzzle.to_string() << endl;
             cerr << "No solutions found, removing last constraint" << endl;
-            // TODO: Back out somehow
-            //return;
+            domain->clear_constraint(last_x, last_y);
+            return;
         }
         domain_dirty = false;
         screen_dirty = true;
     }
     if (screen_dirty) {
-        if (!solutions.empty()) {
-            renderer->render(solutions.at(solution_index));
-        }
+        renderer->render(solutions.at(solution_index));
         screen_dirty = false;
     }
 }
 
-void ShapesDemo::mouseUp(MouseEvent event) {
+void PixelsDemo::mouseUp(MouseEvent event) {
     AppBase::mouseUp(event);
 }
 
-void ShapesDemo::keyDown(KeyEvent event) {
+void PixelsDemo::keyDown(KeyEvent event) {
     AppBase::keyDown(event);
     switch (event.getCode()) {
         case KeyEvent::KEY_UP: {
@@ -145,8 +166,8 @@ void ShapesDemo::keyDown(KeyEvent event) {
 
 }
 
-void ShapesDemo::keyUp(KeyEvent event) {
+void PixelsDemo::keyUp(KeyEvent event) {
     AppBase::keyUp(event);
 }
 
-CINDER_APP(ShapesDemo, RendererGl)
+CINDER_APP(PixelsDemo, RendererGl)

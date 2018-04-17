@@ -1,54 +1,57 @@
 grid_point(1..n, 1..m).
 
-shape_type((rect; triangle)).
+shape_type((rect)).
 
-% A rectangle implies corners
-corner(X, Y) :- rect(X, Y, W, H).
-corner(A, B) :- rect(X, Y, W, H), A=X+0, B=Y+0.
-corner(A, B) :- rect(X, Y, W, H), A=X+W, B=Y+0.
-corner(A, B) :- rect(X, Y, W, H), A=X+W, B=Y+H.
-corner(A, B) :- rect(X, Y, W, H), A=X+0, B=Y+H.
-
-% A triangle implies corners
-corner(X, Y), corner(Q, R), corner(A, B) :- triangle(X, Y, Q, R, A, B).
-
-% A rectangle covers its interior and borders
-inside_rect(A, B, rect(X, Y, W ,H)) :- rect(X, Y, W, H), A=X..X+W, B=Y..Y+H.
-
-% A version not including edges
-%inside_shape(A, B) :- rect(X, Y, W, H), A=X+1..X+W-1, B=Y+1..Y+H-1.
-
-% Sides, clockwise from left
-line(X, Y, A, Y), line(X, Y, X, B), line(A, B, A, Y), line(A, B, X, B) :- rect(X, Y, W, H), A=X+W, B=Y+H.
+%%LINE%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 line(X, Y, Q, R) :- endpoint(X, Y), endpoint(Q, R).
 
 % Order of endpoints doesn't matter
 line(X, Y, Q, R) :- line(Q, R, X, Y).
 
-% Make all concrete shapes imply their abstraction
-shape(X, Y, rect) :- rect(X, Y, W, H).
-shape(X, Y, triangle) :- triangle(X, Y, Q, R, A, B).
+%%RECT%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% A rectangle implies corners
+corner(X, Y) :- rect(X, Y, W, H, _).
+corner(A, B) :- rect(X, Y, W, H, _), A=X+0, B=Y+0.
+corner(A, B) :- rect(X, Y, W, H, _), A=X+W, B=Y+0.
+corner(A, B) :- rect(X, Y, W, H, _), A=X+W, B=Y+H.
+corner(A, B) :- rect(X, Y, W, H, _), A=X+0, B=Y+H.
 
-covered(X, Y) :- inside_rect(X, Y, _).
+% A rectangle implies lines (clockwise from left)
+line(X, Y, A, Y), line(X, Y, X, B), line(A, B, A, Y), line(A, B, X, B) :- rect(X, Y, W, H, _), A=X+W, B=Y+H.
 
-inside_shape(X, Y, S) :- inside_rect(X, Y, S).  
+% A rectangle covers its interior and borders
+inside_shape(A, B, I) :- rect(X, Y, W, H, shape(I, S)), A=X..X+W, B=Y..Y+H.
+
+% Alternative: a rectangle covers its interior
+%inside_shape(A, B, I) :- rect(X, Y, W, H, shape(I, rect)), A=X+1..X+W-1, B=Y+1..Y+H-1.
+
+%%TRIANGLE%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% A triangle implies corners
+corner(X, Y), corner(Q, R), corner(A, B) :- triangle(X, Y, Q, R, A, B).
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% There's one shape placed on some grid point.
-{ shape(X, Y, S): grid_point(X, Y), shape_type(S) } = 1.
+%%COVERING%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+covered(X, Y) :- inside_shape(X, Y, _).
 
-% Decide the rectangles' dimensions
-{ rect(X, Y, W, H): W=1..n, H=1..m } = 1 :- shape(X, Y, rect).
+
+%%GENERATION%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% There's s shapes placed on some grid point.
+%{ shape(X, Y, S): grid_point(X, Y), shape_type(S) } = s.
+
+% There are s shapes, each has some chosen type
+{ shape(I, S): shape_type(S) } = 1 :- I=1..s.
+
+% Decide any abstract rectangles' dimensions. Choose an instantiation for each
+{ rect(X, Y, W, H, shape(I, rect)): W=1..n, H=1..m, grid_point(X, Y) } = 1 :- shape(I, rect), I=1..s.
 
 
 % Cover the grid
-:- not covered(N, M), grid_point(N, M), N=1..n, M=1..m.
+:- not covered(N, M), grid_point(N, M).
 
-%:- not inside_shape(X, Y, A).
-
-% How do we deal with intersection
+% No double covering
+:- inside_shape(N, M, A), inside_shape(N, M, B), A!=B, grid_point(N, M).
 
 
 %#show corner/2.
