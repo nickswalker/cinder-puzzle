@@ -11,49 +11,28 @@
 #include <puzzle/ShapesRenderer.h>
 #include <puzzle/ShapesDomain.h>
 #include <puzzle_demos/Colors.h>
+#include <puzzle_demos/PuzzleDemoApp.h>
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
 
-class ShapesDemo : public App {
+class ShapesDemo : public PuzzleDemos::PuzzleDemoApp {
 public:
-    Puzzle::ShapesRenderer *renderer;
-    Puzzle::ShapesDomain *domain;
-    vector<vector<Puzzle::Fact::Ptr> > solutions;
-    function<Puzzle::Fact::Ptr(Clingo::Symbol)> parser;
-    function<string(Puzzle::Fact::Ptr)> fact_handler;
-    uint32_t solution_index = 0;
-    uint32_t solution_span = 5;
     size_t num_shapes = 2;
-    bool screen_dirty = true;
-    bool domain_dirty = true;
 
     void setup() override;
-
-    void resize() override;
-
-    void mouseDown(MouseEvent event) override;
-
-    void mouseDrag(MouseEvent event) override;
-
-    void mouseUp(MouseEvent event) override;
-
-    void keyDown(KeyEvent event) override;
-
-    void keyUp(KeyEvent event) override;
 
     void draw() override;
 
 };
 
 void ShapesDemo::setup() {
-    gl::enableDepthRead();
-    gl::enableDepthWrite();
+    PuzzleDemos::PuzzleDemoApp::setup();
 
     renderer = new Puzzle::ShapesRenderer(PuzzleDemos::Color::get_solarized());
-
+    renderer->scale = 64;
     parser = [](Clingo::Symbol atom) -> Puzzle::Fact::Ptr {
         //cout << atom.to_string() << endl;
         if (atom.type() == Clingo::SymbolType::Function) {
@@ -67,29 +46,35 @@ void ShapesDemo::setup() {
             return Puzzle::Fact::Ptr();
         }
     };
-    renderer->scale = 48;
-    domain = new Puzzle::ShapesDomain(5, 5);
-    domain->set_num_shapes(num_shapes);
+    domain = new Puzzle::ShapesDomain(3, 3);
+    auto shapes_domain = (Puzzle::ShapesDomain *) domain;
+    shapes_domain->set_num_shapes(num_shapes);
+
+    auto shapes_renderer = (Puzzle::ShapesRenderer *) renderer;
+    shapes_renderer->set_canvas_size(3, 3);
+    initializeUI(1000);
+
+    interface.addSeparator("Domain");
+    interface.addParam<int>("Num Points",
+                            [this, shapes_domain, shapes_renderer](int new_val) {
+                                shapes_domain->set_canvas_size(new_val, new_val);
+                                shapes_renderer->set_canvas_size(new_val, new_val);
+                                domain_dirty = true;
+                                screen_dirty = true;
+                            },
+                            [this, shapes_domain]() -> int { return shapes_domain->get_canvas_size().x; });
+    interface.setOptions("Num Points", "min=2 max=8 step=1");
+
+    interface.addParam<int>("Num Shapes",
+                            [this, shapes_domain](int new_val) {
+                                shapes_domain->set_num_shapes(new_val);
+                                domain_dirty = true;
+                                screen_dirty = true;
+                            },
+                            [this, shapes_domain]() -> int { return shapes_domain->num_shapes; });
+    interface.setOptions("Num Shapes", "min=2 max=8 step=1");
 }
 
-void ShapesDemo::resize() {
-    screen_dirty = true;
-}
-
-void ShapesDemo::mouseDown(MouseEvent event) {
-    int x = event.getPos().x;
-    int y = event.getPos().y;
-    int grid_x = x / renderer->scale;
-    int grid_y = y / renderer->scale;
-
-    //TODO: Poke the domain somehow
-
-
-}
-
-void ShapesDemo::mouseDrag(MouseEvent event) {
-
-}
 
 void ShapesDemo::draw() {
     if (domain_dirty) {
@@ -110,50 +95,17 @@ void ShapesDemo::draw() {
         screen_dirty = true;
     }
     if (screen_dirty) {
-        if (!solutions.empty()) {
+        if (solution_index < solutions.size()) {
             renderer->render(solutions.at(solution_index));
         }
         screen_dirty = false;
     }
-}
-
-void ShapesDemo::mouseUp(MouseEvent event) {
-    AppBase::mouseUp(event);
-}
-
-void ShapesDemo::keyDown(KeyEvent event) {
-    AppBase::keyDown(event);
-    switch (event.getCode()) {
-        case KeyEvent::KEY_UP: {
-            num_shapes += 1;
-            domain->set_num_shapes(num_shapes);
-            domain_dirty = true;
-            break;
-        }
-        case KeyEvent::KEY_SPACE: {
-            solution_index += 1;
-            solution_index %= solution_span;
-            screen_dirty = true;
-            break;
-        }
-        case KeyEvent::KEY_DOWN: {
-            num_shapes -= 1;
-            domain->set_num_shapes(num_shapes);
-            domain_dirty = true;
-            break;
-        }
-        case KeyEvent::KEY_s: {
-            writeImage(to_string(solution_index) + ".png", copyWindowSurface());
-            break;
-        }
-        default:
-            break;
+    if (!hide_ui) {
+        interface.draw();
+    } else {
+        screen_dirty = true;
+        hide_ui = false;
     }
-
-}
-
-void ShapesDemo::keyUp(KeyEvent event) {
-    AppBase::keyUp(event);
 }
 
 CINDER_APP(ShapesDemo, RendererGl)

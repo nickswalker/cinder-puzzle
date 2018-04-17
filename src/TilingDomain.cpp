@@ -15,7 +15,7 @@
 using namespace std;
 
 namespace Puzzle {
-    TilingDomain::TilingDomain(const size_t width, const size_t height): width(width), height(height) {
+    TilingDomain::TilingDomain(const size_t width, const size_t height) : width(width), height(height) {
         ifstream domain_file("./domains/tiling.lp");
         stringstream buffer;
         buffer << domain_file.rdbuf();

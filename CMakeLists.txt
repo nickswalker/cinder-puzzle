@@ -4,7 +4,7 @@ set( CMAKE_VERBOSE_MAKEFILE ON )
 project(puzzle)
 get_filename_component( CINDER_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../Cinder" ABSOLUTE )
 get_filename_component(CLINGO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../clingo" ABSOLUTE)
-get_filename_component( APP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/" ABSOLUTE )
+get_filename_component(APP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/" ABSOLUTE)
 
 include( "${CINDER_PATH}/proj/cmake/configure.cmake" )
 
@@ -27,12 +27,13 @@ include_directories(
         include
 )
 
-add_library(puzzle src/PixelsDomain.cpp src/ASPSolver.cpp src/PixelsRenderer.cpp src/Puzzle.cpp src/Constant.cpp src/ShapesRenderer.cpp src/ShapesDomain.cpp src/TSPDomain.cpp src/TSPRenderer.cpp src/TSPRenderer.cpp)
+add_library(puzzle src/PixelsDomain.cpp src/ASPSolver.cpp src/PixelsRenderer.cpp src/Puzzle.cpp src/Constant.cpp src/ShapesRenderer.cpp src/ShapesDomain.cpp src/TSPDomain.cpp src/TSPRenderer.cpp src/TSPRenderer.cpp src/TilingDomain.cpp src/TilingRenderer.cpp)
 add_library(puzzle_demos src/Colors.cpp)
 
-add_executable(pixels_demo src/demos/pixels_demo.cpp)
-add_executable(shapes_demo src/demos/shapes_demo.cpp)
-add_executable(tsp_demo src/demos/tsp_demo.cpp)
+add_executable(pixels_demo src/demos/pixels_demo.cpp src/demos/PuzzleDemoApp.cpp)
+add_executable(shapes_demo src/demos/shapes_demo.cpp src/demos/PuzzleDemoApp.cpp)
+add_executable(tsp_demo src/demos/tsp_demo.cpp src/demos/PuzzleDemoApp.cpp)
+add_executable(tiling_demo src/demos/tiling_demo.cpp src/demos/PuzzleDemoApp.cpp)
 
 target_link_libraries(puzzle
         PUBLIC
@@ -45,6 +46,7 @@ target_link_libraries(puzzle_demos
         PUBLIC
         cinder
         cairo
+        puzzle
         ${CLINGO_LIBS}
         )
 
@@ -63,6 +65,13 @@ target_link_libraries(shapes_demo
         )
 
 target_link_libraries(tsp_demo
+        PUBLIC
+        puzzle
+        puzzle_demos
+        cinder
+        )
+
+target_link_libraries(tiling_demo
         PUBLIC
         puzzle
         puzzle_demos

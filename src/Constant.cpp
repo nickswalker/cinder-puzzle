@@ -10,7 +10,7 @@ namespace Puzzle {
 
     string Constant::to_string() {
         ostringstream out;
-        out << name << "=" << value << ".";
+        out << "#const " << name << "=" << value << ".";
         return out.str();
     }
 }

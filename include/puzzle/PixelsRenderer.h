@@ -12,6 +12,15 @@ namespace Puzzle {
 
         void render(const std::vector<Fact::Ptr> &solution) override;
 
+        void set_constraint_map(std::shared_ptr<int[]> shared_ptr);
+
+        std::shared_ptr<int[]> constraint_map;
+
+        void set_canvas_size(size_t width, size_t height);
+
+        size_t width;
+        size_t height;
+        bool show_constraints;
     };
 }
 

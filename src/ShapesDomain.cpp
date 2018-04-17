@@ -16,7 +16,7 @@ using namespace std;
 
 namespace Puzzle {
     ShapesDomain::ShapesDomain(const size_t _width, const size_t _height) : width(_width),
-                                                                            height(_height), num_shapes(2){
+                                                                            height(_height), num_shapes(2) {
         ifstream domain_file("./domains/shapes.lp");
         stringstream buffer;
         buffer << domain_file.rdbuf();
@@ -47,6 +47,10 @@ namespace Puzzle {
 
     vector<string> ShapesDomain::get_options() const {
         return vector<string>();
+    }
+
+    glm::ivec2 ShapesDomain::get_canvas_size() {
+        return {width, height};
     }
 
 }

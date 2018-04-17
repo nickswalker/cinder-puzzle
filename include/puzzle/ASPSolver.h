@@ -14,6 +14,7 @@ namespace Puzzle {
         Clingo::Control control;
         std::function<Fact::Ptr(Clingo::Symbol & )> parser;
         std::function<std::string(Fact::Ptr)> custom_fact_handler;
+        std::shared_ptr<Clingo::SolveEventHandler> handler;
     public:
 
 
@@ -28,10 +29,13 @@ namespace Puzzle {
         // Synchronous
         std::vector<std::vector<Fact::Ptr>> solve(const Puzzle &puzzle) override;
 
-        void solve(const Puzzle &puzzle, std::function<void(std::vector<Fact::Ptr>)> callback);
+        void solve(const Puzzle &puzzle, std::function<void(std::vector<Fact::Ptr>)> solution_callback,
+                   std::function<void()> completion_callback);
 
         void configure_custom_fact_handler(std::function<std::string(Fact::Ptr)> &parser);
 
+
+        void add_facts(std::vector<Fact::Ptr> facts);
     };
 
 }

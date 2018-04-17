@@ -2,13 +2,13 @@
 #define PUZZLE_SHAPESDOMAIN_H
 
 #include <puzzle/Domain.h>
+#include <glm/vec2.hpp>
 
 namespace Puzzle {
     class ShapesDomain : public Domain {
         std::vector<Fact::Ptr> facts;
         size_t width;
         size_t height;
-        size_t num_shapes;
 
     public:
         ShapesDomain(size_t width, size_t height);
@@ -21,6 +21,9 @@ namespace Puzzle {
 
         void set_num_shapes(size_t num_shapes);
 
+        glm::ivec2 get_canvas_size();
+
+        size_t num_shapes;
     };
 }
 

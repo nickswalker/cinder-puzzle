@@ -3,38 +3,17 @@
 #include <puzzle/PixelColor.h>
 #include <puzzle/Constant.h>
 #include <clingo.hh>
-#include <functional>
 
 using namespace Clingo;
 using namespace std;
 namespace Puzzle {
 
-    struct ConfigurableSolveEventHandler : public SolveEventHandler {
-
-        std::function<bool(Model const &model)> on_model_handler;
-        std::function<void(SolveResult)> on_finish_handler;
-
-        ConfigurableSolveEventHandler(std::function<bool(Model const &model)> on_model,
-                                      std::function<void(SolveResult)> on_finish) : on_model_handler(on_model),
-                                                                                    on_finish_handler(on_finish) {
-        }
-
-        bool on_model(Model const &model) override {
-            return SolveEventHandler::on_model(model);
-        }
-
-        virtual void on_finish(SolveResult result) {
-            SolveEventHandler::on_finish(result);
-        }
-    };
-
     void ASPSolver::add(const string &fragment) {
         control.add("base", {}, fragment.c_str());
     }
 
-    void ASPSolver::solve(const Puzzle &puzzle, function<void(vector<Fact::Ptr>)> callback) {
+    vector<vector<Fact::Ptr>> ASPSolver::solve(const Puzzle &puzzle) {
         vector<Fact::Ptr> facts = puzzle.get_facts();
-        control.interrupt();
         for (auto &fact : facts) {
             if (auto raw_fact = dynamic_pointer_cast<RawFact>(fact)) {
                 control.add("base", {}, raw_fact->fact.c_str());
@@ -58,35 +37,27 @@ namespace Puzzle {
         vector<vector<Fact::Ptr>> solution;
 
         try {
+
             control.ground({{"base", {}}});
+            auto handle = control.solve();
+            for (auto m : handle) {
+                vector<Fact::Ptr> model_facts;
+                for (auto &atom : m.symbols(Clingo::ShowType::Shown)) {
+                    auto result = this->parser(atom);
+                    if (!result) {
+                        continue;
+                    }
+                    model_facts.push_back(result);
+                }
+                std::sort(model_facts.begin(), model_facts.end());
+                solution.push_back(model_facts);
+            }
+            cout << handle.get() << endl;
         }
         catch (exception const &e) {
             cerr << "Grounding failed with: " << e.what() << endl;
         }
-        ConfigurableSolveEventHandler *handler = new ConfigurableSolveEventHandler(
-                [this, callback](Model const &m) -> bool {
-                    vector<Fact::Ptr> model_facts;
-                    for (auto &atom : m.symbols(Clingo::ShowType::Shown)) {
-
-                        auto result = this->parser(atom);
-                        if (!result) {
-                            continue;
-                        }
-                        model_facts.push_back(result);
-                    }
-                    std::sort(model_facts.begin(), model_facts.end());
-                    callback(model_facts);
-                    return true;
-                }, [](SolveResult result) {
-                    cout << "RESULT" << endl;
-                    cout << result << endl;
-                });
-        auto handle = control.solve({}, handler, true);
-
-    }
-
-    vector<vector<Fact::Ptr>> ASPSolver::solve(const Puzzle &puzzle) {
-
+        return solution;
     }
 
     ASPSolver::ASPSolver(uint32_t max_solutions = 1) {

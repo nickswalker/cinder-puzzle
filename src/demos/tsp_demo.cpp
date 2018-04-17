@@ -11,55 +11,44 @@
 #include <puzzle/TSPRenderer.h>
 #include <puzzle/TSPDomain.h>
 #include <puzzle/CycleEdge.h>
-#include <puzzle/Fact1.h>
+#include <puzzle/FactN.h>
+#include <puzzle_demos/Colors.h>
+#include <puzzle_demos/PuzzleDemoApp.h>
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
 
-class TSPDemo : public App {
+class TSPDemo : public PuzzleDemos::PuzzleDemoApp {
 public:
-    Puzzle::TSPRenderer *renderer;
-    Puzzle::TSPDomain *domain;
-    function<Puzzle::Fact::Ptr(Clingo::Symbol)> parser;
-    function<string(Puzzle::Fact::Ptr)> fact_handler;
-    vector<vector<Puzzle::Fact::Ptr> > solutions;
-    uint32_t solution_index = 0;
-    uint32_t solution_span = 100;
+
     int last_x = 0;
     int last_y = 0;
-    bool screen_dirty = true;
-    bool domain_dirty = true;
 
     vector<ivec2> circle_centers;
 
     void setup() override;
 
-    void resize() override;
-
     void mouseDown(MouseEvent event) override;
-
-    void mouseDrag(MouseEvent event) override;
-
-    void mouseUp(MouseEvent event) override;
-
-    void keyDown(KeyEvent event) override;
-
-    void keyUp(KeyEvent event) override;
 
     void draw() override;
 
 };
 
 void TSPDemo::setup() {
-    gl::enableDepthRead();
-    gl::enableDepthWrite();
+    PuzzleDemos::PuzzleDemoApp::setup();
 
+    solution_span = 1000;
     vector<string> color_strings;
-    renderer = new Puzzle::TSPRenderer();
+    renderer = new Puzzle::TSPRenderer(PuzzleDemos::Color::get_solarized());
+
+    renderer->scale = 4;
     domain = new Puzzle::TSPDomain();
-    domain->minimize_cost = true;
+
+    auto tsp_renderer = (Puzzle::TSPRenderer *) renderer;
+    auto tsp_domain = (Puzzle::TSPDomain *) domain;
+    tsp_domain->minimize_cost = true;
 
     parser = [](Clingo::Symbol atom) -> Puzzle::Fact::Ptr {
         if (atom.type() == Clingo::SymbolType::Function) {
@@ -71,7 +60,7 @@ void TSPDemo::setup() {
             } else if (string("total_cost") == atom.name()) {
 
                 auto args = atom.arguments();
-                auto result = make_shared<Puzzle::Fact1>(args[0].number());
+                auto result = make_shared<Puzzle::Fact1<uint32_t>>(atom.name(), args[0].number());
                 return dynamic_pointer_cast<Puzzle::Fact>(result);
 
             }
@@ -82,10 +71,9 @@ void TSPDemo::setup() {
     fact_handler = [](Puzzle::Fact::Ptr fact) -> string {
         return "";
     };
-}
 
-void TSPDemo::resize() {
-    screen_dirty = true;
+    initializeUI();
+    interface.addSeparator("Domain");
 }
 
 void TSPDemo::mouseDown(MouseEvent event) {
@@ -107,24 +95,24 @@ void TSPDemo::mouseDown(MouseEvent event) {
 
 }
 
-void TSPDemo::mouseDrag(MouseEvent event) {
-
-}
 
 void TSPDemo::draw() {
+    auto tsp_renderer = (Puzzle::TSPRenderer *) renderer;
+    auto tsp_domain = (Puzzle::TSPDomain *) domain;
     if (domain_dirty) {
-        renderer->set_nodes(circle_centers);
-        domain->points = circle_centers;
+        tsp_renderer->set_nodes(circle_centers);
+        tsp_domain->points = circle_centers;
         Puzzle::Puzzle puzzle;
         puzzle.compose(*domain);
         Puzzle::ASPSolver solver(solution_span);
         solver.configure_custom_fact_handler(fact_handler);
         solver.configure_parser(parser);
         solutions = solver.solve(puzzle);
+        setUILimits(solutions.size() - 1);
 
         if (solutions.empty()) {
-            cerr << puzzle.to_string() << endl;
-            cerr << "No solutions found, removing last constraint" << endl;
+            //cerr << puzzle.to_string() << endl;
+            cerr << "No solutions found" << endl;
 
         }
         domain_dirty = false;
@@ -136,45 +124,12 @@ void TSPDemo::draw() {
         }
         screen_dirty = false;
     }
-}
-
-void TSPDemo::mouseUp(MouseEvent event) {
-    AppBase::mouseUp(event);
-}
-
-void TSPDemo::keyDown(KeyEvent event) {
-    AppBase::keyDown(event);
-    switch (event.getCode()) {
-        case KeyEvent::KEY_UP: {
-
-            if (solution_index < solutions.size() - 1) {
-                solution_index += 1;
-            }
-            screen_dirty = true;
-            break;
-        }
-        case KeyEvent::KEY_DOWN: {
-            if (solution_index > 0) {
-                solution_index -= 1;
-            }
-
-            screen_dirty = true;
-            break;
-        }
-        case KeyEvent::KEY_s: {
-            writeImage(to_string(solution_index) + ".png", copyWindowSurface());
-            break;
-        }
-        default:
-            break;
+    if (!hide_ui) {
+        interface.draw();
+    } else {
+        screen_dirty = true;
+        hide_ui = false;
     }
-
-    cout << solution_index << endl;
-
-}
-
-void TSPDemo::keyUp(KeyEvent event) {
-    AppBase::keyUp(event);
 }
 
 CINDER_APP(TSPDemo, RendererGl(RendererGl::Options().msaa(4)))

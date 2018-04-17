@@ -13,12 +13,12 @@ namespace Puzzle {
     public:
         std::map<std::string, cinder::Color> color_map;
 
-        explicit TilingRenderer(std::map<std::string, cinder::Color> color_map): color_map(std::move(color_map)), solutions_seen(0) {
+        explicit TilingRenderer(std::map<std::string, cinder::Color> color_map) : color_map(std::move(color_map)),
+                                                                                  solutions_seen(0) {
 
         }
 
         void render(const std::vector<Fact::Ptr> &solution) override;
-
 
 
     };

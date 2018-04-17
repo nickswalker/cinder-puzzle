@@ -8,74 +8,51 @@
 #include <puzzle/PixelColor.h>
 #include <map>
 #include <functional>
-#include <puzzle/TSPRenderer.h>
-#include <puzzle/TSPDomain.h>
+#include <puzzle/TilingRenderer.h>
+#include <puzzle/TilingDomain.h>
 #include <puzzle/CycleEdge.h>
 #include <puzzle/FactN.h>
 #include <puzzle_demos/Colors.h>
+#include <puzzle_demos/PuzzleDemoApp.h>
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
 
-class TSPDemo : public App {
+class TilingDemo : public PuzzleDemos::PuzzleDemoApp {
 public:
-    Puzzle::TSPRenderer *renderer;
-    Puzzle::TSPDomain *domain;
-    function<Puzzle::Fact::Ptr(Clingo::Symbol)> parser;
-    function<string(Puzzle::Fact::Ptr)> fact_handler;
-    vector<vector<Puzzle::Fact::Ptr> > solutions;
-    uint32_t solution_index = 0;
-    uint32_t solution_span = 100;
     int last_x = 0;
     int last_y = 0;
-    bool screen_dirty = true;
-    bool domain_dirty = true;
 
     vector<ivec2> circle_centers;
 
     void setup() override;
 
-    void resize() override;
-
-    void mouseDown(MouseEvent event) override;
-
-    void mouseDrag(MouseEvent event) override;
-
-    void mouseUp(MouseEvent event) override;
-
-    void keyDown(KeyEvent event) override;
-
-    void keyUp(KeyEvent event) override;
-
     void draw() override;
 
 };
 
-void TSPDemo::setup() {
-    gl::enableDepthRead();
-    gl::enableDepthWrite();
+void TilingDemo::setup() {
+    PuzzleDemos::PuzzleDemoApp::setup();
 
     vector<string> color_strings;
-    renderer = new Puzzle::TSPRenderer(PuzzleDemos::Color::get_solarized());
+    renderer = new Puzzle::TilingRenderer(PuzzleDemos::Color::get_solarized());
     renderer->scale = 4;
-    domain = new Puzzle::TSPDomain();
-    domain->minimize_cost = true;
+    domain = new Puzzle::TilingDomain(20, 20);
+    auto tiling_domain = (Puzzle::TilingDomain *) domain;
+    auto tiling_renderer = (Puzzle::TilingRenderer *) renderer;
 
     parser = [](Clingo::Symbol atom) -> Puzzle::Fact::Ptr {
         if (atom.type() == Clingo::SymbolType::Function) {
             // TODO: Parser specific exception handler? Otherwise get weird catches on the grounding handler
-            if (string("cycle") == atom.name()) {
+            if (string("covered") == atom.name()) {
                 auto args = atom.arguments();
-                auto result = make_shared<Puzzle::CycleEdge>(args[0].number(), args[1].number());
+                auto result = make_shared<Puzzle::Fact3<uint32_t, uint32_t, uint32_t>>(string("covered"),
+                                                                                       args[0].number(),
+                                                                                       args[1].number(),
+                                                                                       args[2].number());
                 return dynamic_pointer_cast<Puzzle::Fact>(result);
-            } else if (string("total_cost") == atom.name()) {
-
-                auto args = atom.arguments();
-                auto result = make_shared<Puzzle::Fact1<uint32_t>>(atom.name(), args[0].number());
-                return dynamic_pointer_cast<Puzzle::Fact>(result);
-
             }
             return Puzzle::Fact::Ptr();
         }
@@ -84,39 +61,23 @@ void TSPDemo::setup() {
     fact_handler = [](Puzzle::Fact::Ptr fact) -> string {
         return "";
     };
+
+    initializeUI();
+    interface.addSeparator("Domain");
+    interface.addParam<int>("Num Points",
+                            [this, tiling_domain](int new_val) {
+                                tiling_domain->set_canvas_size(new_val, new_val);
+                                tiling_renderer->set_canvas_size(new_val, new_val);
+                                domain_dirty = true;
+                                screen_dirty = true;
+                            },
+                            [this, tiling_domain]() -> int { return tiling_domain->get_canvas_size().x; });
+    interface.setOptions("Num Pixels", "min=1 max=64 step=1");
 }
 
-void TSPDemo::resize() {
-    screen_dirty = true;
-}
 
-void TSPDemo::mouseDown(MouseEvent event) {
-    bool near_existing = false;
-    ivec2 existing;
-    for (const auto &center: circle_centers) {
-        glm::dvec2 diff = center - event.getPos();
-        double distance = glm::length(diff);
-        if (distance < 5.0) {
-            near_existing = true;
-            existing = center;
-            break;
-        }
-    }
-    if (!near_existing) {
-        circle_centers.emplace_back(event.getX(), event.getY());
-        domain_dirty = true;
-    }
-
-}
-
-void TSPDemo::mouseDrag(MouseEvent event) {
-
-}
-
-void TSPDemo::draw() {
+void TilingDemo::draw() {
     if (domain_dirty) {
-        renderer->set_nodes(circle_centers);
-        domain->points = circle_centers;
         Puzzle::Puzzle puzzle;
         puzzle.compose(*domain);
         Puzzle::ASPSolver solver(solution_span);
@@ -138,49 +99,14 @@ void TSPDemo::draw() {
         }
         screen_dirty = false;
     }
-}
 
-void TSPDemo::mouseUp(MouseEvent event) {
-    AppBase::mouseUp(event);
-}
-
-void TSPDemo::keyDown(KeyEvent event) {
-    AppBase::keyDown(event);
-    switch (event.getCode()) {
-        case KeyEvent::KEY_UP: {
-
-            if (solution_index < solutions.size() - 1) {
-                solution_index += 1;
-            }
-            screen_dirty = true;
-            break;
-        }
-        case KeyEvent::KEY_DOWN: {
-            if (solution_index > 0) {
-                solution_index -= 1;
-            }
-
-            screen_dirty = true;
-            break;
-        }
-        case KeyEvent::KEY_s: {
-            writeImage(to_string(solution_index) + ".png", copyWindowSurface());
-            break;
-        }
-        case KeyEvent::KEY_c: {
-            renderer->clear();
-            break;
-        }
-        default:
-            break;
+    if (!hide_ui) {
+        interface.draw();
+    } else {
+        screen_dirty = true;
+        hide_ui = false;
     }
-
-    cout << solution_index << endl;
-
 }
 
-void TSPDemo::keyUp(KeyEvent event) {
-    AppBase::keyUp(event);
-}
 
-CINDER_APP(TSPDemo, RendererGl(RendererGl::Options().msaa(4)))
+CINDER_APP(TilingDemo, RendererGl(RendererGl::Options().msaa(4)))

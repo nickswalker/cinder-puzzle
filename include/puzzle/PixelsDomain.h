@@ -3,14 +3,16 @@
 
 #include <puzzle/Domain.h>
 #include <set>
+#include <glm/vec2.hpp>
 namespace Puzzle {
     class PixelsDomain : public Domain {
         std::vector<Fact::Ptr> facts;
         std::vector<std::string> colors;
         size_t width;
         size_t height;
-        int *constraints;
+
     public:
+        std::shared_ptr<int[]> constraints;
         PixelsDomain(size_t _width, size_t _height, const std::vector<std::string> &colors);
 
         ~PixelsDomain();
@@ -28,6 +30,8 @@ namespace Puzzle {
         void increment_constraint(uint32_t x, uint32_t y);
 
         void clear_constraint(uint32_t x, uint32_t y);
+
+        glm::ivec2 get_canvas_size();
     };
 }
 

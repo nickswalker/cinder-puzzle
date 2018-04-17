@@ -9,6 +9,7 @@
 #include <set>
 #include <puzzle/Constant.h>
 #include <puzzle/PixelColor.h>
+#include <glm/detail/type_vec.hpp>
 
 using namespace std;
 
@@ -27,7 +28,7 @@ namespace Puzzle {
         facts.emplace_back(fact);
 
         domain_file.close();
-        fill_n(constraints, width * height, 0);
+        fill_n(constraints.get(), width * height, 0);
     }
 
     vector<Fact::Ptr> PixelsDomain::get_facts() const {
@@ -46,7 +47,7 @@ namespace Puzzle {
         }
         for (int i = 0; i < width; ++i) {
             for (int j = 0; j < height; ++j) {
-                int constraint = constraints[j * width + i];
+                int constraint = constraints.get()[j * width + i];
                 if (constraint != 0) {
                     auto color_str = colors[constraint - 1];
                     // Note that the domain is 1 indexed
@@ -72,6 +73,8 @@ namespace Puzzle {
     void PixelsDomain::set_canvas_size(const size_t width, const size_t height) {
         this->width = width;
         this->height = height;
+        constraints = shared_ptr<int[]>(new int[width * height]);
+        fill_n(constraints.get(), width * height, 0);
     }
 
     vector<string> PixelsDomain::get_options() const {
@@ -82,18 +85,21 @@ namespace Puzzle {
         auto find_result = find(colors.begin(), colors.end(), color);
         auto index = distance(colors.begin(), find_result);
 
-        constraints[y * width + x] = index;
+        constraints.get()[y * width + x] = index;
     }
 
     void PixelsDomain::increment_constraint(uint32_t x, uint32_t y) {
-        constraints[y * width + x] = (constraints[y * width + x] + 1) % colors.size();
+        constraints.get()[y * width + x] = (constraints.get()[y * width + x] + 1) % colors.size();
     }
 
     void PixelsDomain::clear_constraint(uint32_t x, uint32_t y) {
-        constraints[y * width + x] = 0;
+        constraints.get()[y * width + x] = 0;
     }
 
-    PixelsDomain::~PixelsDomain() { delete[] constraints; }
+
+    glm::ivec2 PixelsDomain::get_canvas_size() {
+        return {width, height};
+    }
 
 
 }
