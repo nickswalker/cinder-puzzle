@@ -1,0 +1,6 @@
+[submodule "Cinder"]
+	path = Cinder
+	url = https://github.com/cinder/Cinder
+[submodule "clingo"]
+	path = clingo
+	url = https://github.com/potassco/clingo

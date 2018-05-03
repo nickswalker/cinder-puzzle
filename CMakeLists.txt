@@ -1,15 +1,17 @@
 cmake_minimum_required( VERSION 2.8 FATAL_ERROR )
 set( CMAKE_VERBOSE_MAKEFILE ON )
 
+set(CMAKE_CXX_STANDARD 14)
+
 project(puzzle)
-get_filename_component( CINDER_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../Cinder" ABSOLUTE )
-get_filename_component(CLINGO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../clingo" ABSOLUTE)
+get_filename_component(CINDER_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Cinder" ABSOLUTE)
+get_filename_component(CLINGO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/clingo" ABSOLUTE)
 get_filename_component(APP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/" ABSOLUTE)
 
 include( "${CINDER_PATH}/proj/cmake/configure.cmake" )
 
 set(CLINGO_INCLUDES "${CLINGO_PATH}/clasp" "${CLINGO_PATH}/libclingo")
-set(CLINGO_LIBS libclingo.so)
+set(CLINGO_LIBS libclingo.so m stdc++)
 set(CLINGO_LINK_PATH "${CLINGO_PATH}/build/bin")
 
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
